@@ -13,7 +13,6 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         if (BuildConfig.DEBUG) {
-//            Timber.plant(Timber.DebugTree())
             Logger.addLogAdapter(AndroidLogAdapter())
 
             Timber.plant(
