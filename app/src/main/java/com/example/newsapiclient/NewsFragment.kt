@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SearchView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -12,6 +13,9 @@ import com.example.newsapiclient.data.util.Resource
 import com.example.newsapiclient.databinding.FragmentNewsBinding
 import com.example.newsapiclient.presentation.adapter.NewsAdapter
 import com.example.newsapiclient.presentation.viewmodel.NewsViewModel
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 class NewsFragment : Fragment() {
@@ -40,11 +44,60 @@ class NewsFragment : Fragment() {
 
         initRecyclerView()
         viewNewsList()
+        setSearchView()
     }
 
     private fun viewNewsList() {
         viewModel.getNewsHeadlines("us", 1)
         viewModel.newsHeadlines.observe(viewLifecycleOwner, { response ->
+            when (response) {
+                is Resource.Success -> {
+                    hideProgressBar()
+                    response.data.let {
+                        newsAdapter.differ.submitList(it?.articles?.toList())
+                    }
+                }
+                is Resource.Loading -> {
+                    showProgressBar()
+                }
+                is Resource.Error -> {
+                    hideProgressBar()
+                    response.message.let {
+                        Toast.makeText(activity, "An error occurred : $it", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                }
+            }
+        })
+    }
+
+    private fun setSearchView() {
+        fragmentNewsBinding.svNews.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                viewModel.searchNews("us", query.toString(), 2)
+                viewSearchedNews()
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                MainScope().launch {
+                    delay(2000)
+                    viewModel.searchNews("us", newText.toString(), 10)
+                    viewSearchedNews()
+                }
+                return false            }
+
+        })
+        fragmentNewsBinding.svNews.setOnCloseListener {
+            initRecyclerView()
+            viewNewsList()
+            false
+        }
+
+    }
+
+    private fun viewSearchedNews() {
+        viewModel.searchedNews.observe(viewLifecycleOwner, { response ->
             when (response) {
                 is Resource.Success -> {
                     hideProgressBar()
