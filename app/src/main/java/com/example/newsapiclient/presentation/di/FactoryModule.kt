@@ -22,13 +22,15 @@ object FactoryModule {
         application: Application,
         getNewsHeadlinesUseCase: GetNewsHeadlinesUseCase,
         getSearchedNewsUseCase: GetSearchedNewsUseCase,
-        savedNewsUseCase: SaveNewsUseCase
+        savedNewsUseCase: SaveNewsUseCase,
+        getSavedNewsUseCase: GetSavedNewsUseCase
     ): NewsViewModelFactory {
         return NewsViewModelFactory(
             application,
             getNewsHeadlinesUseCase,
             getSearchedNewsUseCase,
-            savedNewsUseCase
+            savedNewsUseCase,
+            getSavedNewsUseCase
         )
     }
 }
